@@ -13,84 +13,50 @@ class CategoryProductSeeder extends Seeder
      */
     public function run(): void
     {
-        $category = Category::updateOrCreate(
-            ['name' => 'Shoes'],
-            ['name' => 'Shoes']
-        );
-
-        $products = [
-            [
-                'name' => 'Nike Air Max 270',
-                'description' => 'Classic Nike Air Max comfort and style.',
-                'price' => 150.00,
-                'stock' => 50,
-                'image' => 'products/nike_air_max_270.png',
-                'category_id' => $category->id,
+        $brands = [
+            'Nike' => [
+                ['name' => 'Nike Air Max 270', 'price' => 150.00, 'image' => 'products/nike_air_max_270.png', 'desc' => 'Classic Nike Air Max comfort and style.'],
+                ['name' => 'Nike Air Force 1', 'price' => 110.00, 'image' => 'products/nike_air_force_1.png', 'desc' => 'Iconic streetwear sneaker.'],
+                ['name' => 'Nike Pegasus 40', 'price' => 130.00, 'image' => 'products/nike_pegasus_40.png', 'desc' => 'Responsive road running shoes.'],
+                ['name' => 'Nike Dunk Low', 'price' => 115.00, 'image' => 'products/nike_dunk_low.png', 'desc' => 'Versatile and stylish low-top sneaker.'],
             ],
-            [
-                'name' => 'Nike Air Force 1',
-                'description' => 'Iconic streetwear sneaker.',
-                'price' => 110.00,
-                'stock' => 100,
-                'image' => 'products/nike_air_force_1.png',
-                'category_id' => $category->id,
+            'Adidas' => [
+                ['name' => 'Adidas Samba', 'price' => 110.00, 'image' => 'products/adidas_samba.png', 'desc' => 'Authentic soccer look for the streets.'],
+                ['name' => 'Adidas Superstar', 'price' => 95.00, 'image' => 'products/adidas_superstar.png', 'desc' => 'The classic shell-toe shoe.'],
+                ['name' => 'Adidas Ultraboost Light', 'price' => 180.00, 'image' => 'products/adidas_ultraboost.png', 'desc' => 'Lightweight energy-returning running shoes.'],
+                ['name' => 'Adidas Stan Smith', 'price' => 100.00, 'image' => 'products/adidas_stan_smith.png', 'desc' => 'Timeless tennis-inspired sneakers.'],
             ],
-            [
-                'name' => 'Nike Pegasus 40',
-                'description' => 'Responsive road running shoes.',
-                'price' => 130.00,
-                'stock' => 75,
-                'image' => 'products/nike_pegasus_40.png',
-                'category_id' => $category->id,
+            'New Balance' => [
+                ['name' => 'New Balance 550', 'price' => 120.00, 'image' => 'products/nb_550.png', 'desc' => 'Retro basketball-inspired sneaker.'],
+                ['name' => 'New Balance 990v6', 'price' => 200.00, 'image' => 'products/nb_990.png', 'desc' => 'Premium comfort and stability.'],
+                ['name' => 'New Balance 574', 'price' => 90.00, 'image' => 'products/nb_574.png', 'desc' => 'Classic all-day everyday sneaker.'],
             ],
-            [
-                'name' => 'Nike Dunk Low',
-                'description' => 'Versatile and stylish low-top sneaker.',
-                'price' => 115.00,
-                'stock' => 60,
-                'image' => 'products/nike_dunk_low.png',
-                'category_id' => $category->id,
+            'Converse' => [
+                ['name' => 'Chuck Taylor All Star', 'price' => 65.00, 'image' => 'products/converse_ctas.png', 'desc' => 'The original basketball shoe.'],
+                ['name' => 'Chuck 70 High Top', 'price' => 90.00, 'image' => 'products/converse_c70.png', 'desc' => 'Enhanced cushioning and durability.'],
             ],
-            // Adidas Products
-            [
-                'name' => 'Adidas Ultraboost Light',
-                'description' => 'Lightweight energy-returning running shoes.',
-                'price' => 180.00,
-                'stock' => 45,
-                'image' => 'products/adidas_ultraboost.png',
-                'category_id' => $category->id,
-            ],
-            [
-                'name' => 'Adidas Stan Smith',
-                'description' => 'Timeless tennis-inspired sneakers.',
-                'price' => 100.00,
-                'stock' => 80,
-                'image' => 'products/adidas_stan_smith.png',
-                'category_id' => $category->id,
-            ],
-            [
-                'name' => 'Adidas Superstar',
-                'description' => 'The classic shell-toe shoe.',
-                'price' => 95.00,
-                'stock' => 70,
-                'image' => 'products/adidas_superstar.png',
-                'category_id' => $category->id,
-            ],
-            [
-                'name' => 'Adidas Samba',
-                'description' => 'Authentic soccer look for the streets.',
-                'price' => 110.00,
-                'stock' => 30,
-                'image' => 'products/adidas_samba.png',
-                'category_id' => $category->id,
+            'Puma' => [
+                ['name' => 'Puma Suede Classic', 'price' => 75.00, 'image' => 'products/puma_suede.png', 'desc' => 'Iconic low-top silhouette.'],
+                ['name' => 'Puma RS-X', 'price' => 110.00, 'image' => 'products/puma_rsx.png', 'desc' => 'Bold bulky design and tech.'],
             ],
         ];
 
-        foreach ($products as $productData) {
-            Product::updateOrCreate(
-                ['name' => $productData['name']],
-                $productData
-            );
+        foreach ($brands as $brandName => $products) {
+            $category = Category::updateOrCreate(['name' => $brandName]);
+
+            foreach ($products as $p) {
+                Product::updateOrCreate(
+                    ['name' => $p['name']],
+                    [
+                        'name' => $p['name'],
+                        'description' => $p['desc'],
+                        'price' => $p['price'],
+                        'stock' => 50,
+                        'image' => $p['image'],
+                        'category_id' => $category->id,
+                    ]
+                );
+            }
         }
     }
 }

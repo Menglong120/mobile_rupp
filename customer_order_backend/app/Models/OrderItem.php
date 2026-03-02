@@ -10,7 +10,7 @@ class OrderItem extends Model
     protected $primaryKey = 'tid'; // Add this line
     public $incrementing = true;   // Add this if tid is auto-increment
     protected $keyType = 'int';
-    protected $fillable = ['order_id', 'product_id', 'quantity', 'price'];
+    protected $fillable = ['order_id', 'product_id', 'quantity', 'size', 'price'];
     protected $casts = [
         'quantity' => 'integer',
         'price' => 'decimal:2',

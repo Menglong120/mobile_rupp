@@ -5,7 +5,12 @@ use App\Http\Controllers\Api\CustomerApiController;
 use App\Http\Controllers\Api\OrderApiController;
 use App\Http\Controllers\Api\OrderItemApiController;
 use App\Http\Controllers\Api\CustomerAddressController;
+use App\Http\Controllers\Api\CustomerIndexController;
+use App\Http\Controllers\Api\CustomerManagementController;
+use App\Http\Controllers\Api\CategoryApiController;
 use Illuminate\Http\Request;
+
+Route::apiResource('/categories', CategoryApiController::class);
 use Illuminate\Support\Facades\Route;
 
 Route::get('/user', function (Request $request) {
@@ -22,6 +27,8 @@ Route::post('/customer/setup', [CustomerApiController::class, 'setup']);
 Route::get('/customer/show', [CustomerApiController::class, 'show']);
 Route::post('/customer/photo', [CustomerApiController::class, 'updatePhoto']);
 Route::post('/customer/login', [CustomerApiController::class, 'login']);
+Route::get('/customers', CustomerIndexController::class);
+Route::delete('/customers/{id}', [CustomerManagementController::class, 'destroy']);
 
 Route::post('/customer/request-reset-password', [CustomerApiController::class, 'requestResetPassword']);
 Route::post('/customer/resend-otp', [CustomerApiController::class, 'resendOtp']);
@@ -34,6 +41,7 @@ Route::post('/orders/place', [OrderApiController::class, 'placeOrder']);
 Route::get('/orders', [OrderApiController::class, 'index']);
 Route::get('/orders/customer/{customer_id}', [OrderApiController::class, 'listByCustomer']);
 Route::get('/orders/{oid}', [OrderApiController::class, 'show']);
+Route::put('/orders/{oid}/status', [OrderApiController::class, 'updateStatus']);
 
 // Bakong Payment Routes
 Route::post('/payments/generate-khqr', [OrderApiController::class, 'generateKhqr']);

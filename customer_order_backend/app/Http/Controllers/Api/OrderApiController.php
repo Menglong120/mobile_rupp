@@ -24,6 +24,7 @@ class OrderApiController extends Controller
             'items'                => 'required|array|min:1',
             'items.*.product_id'   => 'required|exists:products,pid',
             'items.*.quantity'     => 'required|integer|min:1',
+            'items.*.size'         => 'nullable|string',
             'payment_method'       => 'nullable|string|in:cash,bakong',
         ]);
 
@@ -49,6 +50,7 @@ class OrderApiController extends Controller
             $orderItems[] = [
                 'product_id' => $product->pid,
                 'quantity'   => $item['quantity'],
+                'size'       => $item['size'] ?? null,
                 'price'      => $product->price,
             ];
         }
@@ -87,6 +89,7 @@ class OrderApiController extends Controller
                 'order_id'   => $order->oid,
                 'product_id' => $item['product_id'],
                 'quantity'   => $item['quantity'],
+                'size'       => $item['size'],
                 'price'      => $item['price'],
             ]);
         }
@@ -139,6 +142,30 @@ class OrderApiController extends Controller
         }
 
         return response()->json($order, 200);
+    }
+
+    public function updateStatus(Request $request, $oid)
+    {
+        $order = Order::find($oid);
+        if (!$order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'status' => 'required|string|in:pending,processing,shipped,completed,cancelled',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $order->status = $request->status;
+        $order->save();
+
+        return response()->json([
+            'message' => 'Order status updated successfully',
+            'data' => $order
+        ], 200);
     }
 
     public function generateKhqr(Request $request, BakongService $bakongService)

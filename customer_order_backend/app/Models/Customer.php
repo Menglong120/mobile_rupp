@@ -15,8 +15,8 @@ class Customer extends Model
         'phone',
         'photo',
         'gender',
-        // 'otp',
         'otp_verified',
+        'date_of_birth',
         'is_active'
     ];
 

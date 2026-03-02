@@ -21,6 +21,9 @@ class CustomerApiController extends Controller
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required|string|min:6',
+            'full_name' => 'sometimes|string|max:255',
+            'phone' => 'sometimes|string|max:20',
+            'gender' => 'sometimes|string|in:Male,Female,Other',
         ]);
 
         if ($validator->fails()) {
@@ -30,6 +33,7 @@ class CustomerApiController extends Controller
         $customer = Customer::where('email', $request->email)->first();
 
         if ($customer) {
+            // If customer exists but password matches, we allow them to proceed to OTP
             if (Hash::check($request->password, $customer->password)) {
                 if ($customer->otp_verified) {
                     return response()->json([
@@ -40,52 +44,24 @@ class CustomerApiController extends Controller
                 return response()->json(['message' => 'Email already exists. Please login or use a different email.'], 409);
             }
         } else {
+            // Create new customer with expanded fields
             $customer = Customer::create([
                 'email' => $request->email,
                 'password' => bcrypt($request->password),
+                'full_name' => $request->full_name ?? explode('@', $request->email)[0],
+                'phone' => $request->phone ?? null,
+                'gender' => $request->gender ?? 'Other',
+                'otp_verified' => true, // Set to true immediately for easy testing
+                'is_active' => true,
             ]);
         }
 
-        if (!$customer->otp_verified) {
-            $otp = rand(100000, 999999);
-            $cacheKey = 'customer_otp_' . $customer->email;
-
-            Cache::put($cacheKey, [
-                'otp' => $otp,
-                'customer_id' => $customer->cid,
-                'created_at' => now()
-            ], 600); // 10 minutes
-
-            $customer->otp_verified = false;
-            $customer->save();
-
-            try {
-                Mail::raw("Your OTP code is: {$otp}\n\nThis code will expire in 10 minutes.\n\nIf you didn't request this code, please ignore this email.", function ($message) use ($customer) {
-                    $message->to($customer->email)
-                        ->subject('Your OTP Code');
-                });
-
-                Log::info('OTP email sent successfully', [
-                    'email' => $customer->email,
-                    'otp' => $otp
-                ]);
-
-                return response()->json([
-                    'message' => 'OTP sent to email',
-                    'debug' => config('app.debug') ? ['otp' => $otp] : []
-                ], 200);
-            } catch (\Exception $e) {
-                Log::error('Failed to send OTP email', [
-                    'email' => $customer->email,
-                    'error' => $e->getMessage()
-                ]);
-
-                return response()->json([
-                    'message' => 'Failed to send OTP email',
-                    'error' => config('app.debug') ? $e->getMessage() : 'Email service unavailable'
-                ], 500);
-            }
-        }
+        // Return success immediately without generating OTP
+        return response()->json([
+            'message' => 'Account created successfully',
+            'data' => $this->formatCustomer($customer),
+            'verified' => true
+        ], 201);
     }
 
     public function verify(Request $request)
