@@ -289,10 +289,13 @@ class AuthService {
     }
   }
 
-  static Future<Map<String, dynamic>> register(
-    String email,
-    String password,
-  ) async {
+  static Future<Map<String, dynamic>> register({
+    required String email,
+    required String password,
+    String? fullName,
+    String? phone,
+    String? gender,
+  }) async {
     var url = Uri.parse('$baseUrl/customer/auth');
     try {
       var response = await http.post(
@@ -301,6 +304,9 @@ class AuthService {
         body: jsonEncode({
           'email': email,
           'password': password,
+          'full_name': fullName,
+          'phone': phone,
+          'gender': gender,
         }),
       );
 
@@ -308,7 +314,13 @@ class AuthService {
           true) {
         var responseData = jsonDecode(response.body);
 
-        if (response.statusCode == 200) {
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool('isLoggedIn', true);
+          if (responseData['data'] != null) {
+            await prefs.setString('userData', jsonEncode(responseData['data']));
+          }
+
           return {
             'success': true,
             'message': responseData['message'] ?? 'Registration successful',

@@ -117,8 +117,9 @@ class _AddAddressViewState extends State<AddAddressView> {
                   ),
                   children: [
                     TileLayer(
-                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'com.example.app',
+                      urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      subdomains: const ['a', 'b', 'c'],
+                      userAgentPackageName: 'com.example.customer_order_app',
                     ),
                     if (selectedLocation != null)
                       MarkerLayer(
@@ -138,7 +139,7 @@ class _AddAddressViewState extends State<AddAddressView> {
                       ),
                   ],
                 ),
-                PositionReference(
+                Positioned(
                   bottom: 20,
                   right: 20,
                   child: FloatingActionButton(

@@ -11,6 +11,10 @@ class SignUpController extends GetxController
   var emailController = TextEditingController();
   var passwordController = TextEditingController();
   var confirmPasswordController = TextEditingController();
+  var fullNameController = TextEditingController();
+  var phoneController = TextEditingController();
+  var selectedGender = 'Male'.obs;
+
   var isLoading = false.obs;
   var isRememberMe = false.obs;
   var isPasswordVisible = false.obs;
@@ -29,10 +33,14 @@ class SignUpController extends GetxController
     emailController.addListener(updateFormStatus);
     passwordController.addListener(updateFormStatus);
     confirmPasswordController.addListener(updateFormStatus);
+    fullNameController.addListener(updateFormStatus);
+    phoneController.addListener(updateFormStatus);
 
     emailController.clear();
     passwordController.clear();
     confirmPasswordController.clear();
+    fullNameController.clear();
+    phoneController.clear();
 
     _animationController = AnimationController(
       vsync: this,
@@ -53,7 +61,9 @@ class SignUpController extends GetxController
   void updateFormStatus() {
     isFormFilled.value = emailController.text.isNotEmpty &&
         passwordController.text.isNotEmpty &&
-        confirmPasswordController.text.isNotEmpty;
+        confirmPasswordController.text.isNotEmpty &&
+        fullNameController.text.isNotEmpty &&
+        phoneController.text.isNotEmpty;
   }
 
   @override
@@ -62,6 +72,8 @@ class SignUpController extends GetxController
     emailController.removeListener(updateFormStatus);
     passwordController.removeListener(updateFormStatus);
     confirmPasswordController.removeListener(updateFormStatus);
+    fullNameController.removeListener(updateFormStatus);
+    phoneController.removeListener(updateFormStatus);
     super.onClose();
   }
 
@@ -73,6 +85,8 @@ class SignUpController extends GetxController
     emailController.clear();
     passwordController.clear();
     confirmPasswordController.clear();
+    fullNameController.clear();
+    phoneController.clear();
     isRememberMe.value = false;
     isPasswordVisible.value = false;
   }
@@ -82,7 +96,10 @@ class SignUpController extends GetxController
   }
 
   void register() async {
-    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
+    if (emailController.text.isEmpty ||
+        passwordController.text.isEmpty ||
+        fullNameController.text.isEmpty ||
+        phoneController.text.isEmpty) {
       triggerShake();
       return;
     }
@@ -94,27 +111,27 @@ class SignUpController extends GetxController
 
     isLoading.value = true;
     final result = await AuthService.register(
-      emailController.text.trim(),
-      passwordController.text,
+      email: emailController.text.trim(),
+      password: passwordController.text,
+      fullName: fullNameController.text.trim(),
+      phone: phoneController.text.trim(),
+      gender: selectedGender.value,
     );
     isLoading.value = false;
 
     final message = result['message']?.toString() ?? '';
-    if (message.contains('already exists') ||
-        message.contains('already verified')) {
+    if (message.contains('already exists')) {
       Get.snackbar('Error', message);
       triggerShake();
       return;
     }
 
     if (result['success'] == true) {
-      final email = emailController.text.trim();
-      Get.put(OtpVerifyController(email: email));
-      Get.toNamed(RoutesName.otpVerify, arguments: email);
+      Get.snackbar('Success', 'Registration successful!');
+      Get.offAllNamed(RoutesName.mainScreen); // Jump straight to main interface
       clearForm();
     } else {
-      Get.snackbar(
-          'Error', message.isNotEmpty ? message : 'Registration failed');
+      Get.snackbar('Error', message.isNotEmpty ? message : 'Registration failed');
       triggerShake();
     }
   }

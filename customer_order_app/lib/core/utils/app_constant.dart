@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 
 // If you run on a real device, set this to your PC's LAN IP (example: "192.168.1.10").
 // Leave empty to use platform defaults.
-const String manualDevHost = '';
+const String manualDevHost = '10.10.10.203';
 
 String get _devHost {
   if (manualDevHost.isNotEmpty) return manualDevHost;

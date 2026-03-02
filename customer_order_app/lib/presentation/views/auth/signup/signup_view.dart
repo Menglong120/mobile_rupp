@@ -28,7 +28,7 @@ class SignUpView extends GetView<SignUpController> {
           ),
           body: Form(
             key: formKey,
-            child: Center(
+            child: SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -51,6 +51,85 @@ class SignUpView extends GetView<SignUpController> {
                       style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                     ),
                     const SizedBox(height: 32),
+                    Text(
+                      "Full Name",
+                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 8),
+                    FadeInDown(
+                      duration: const Duration(milliseconds: 400),
+                      delay: const Duration(milliseconds: 100),
+                      child: CustomTextField(
+                        prefixIcon: Icon(Icons.person_outline),
+                        controller: controller.fullNameController,
+                        hintText: 'Enter your full name',
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your full name';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      "Phone Number",
+                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 8),
+                    FadeInDown(
+                      duration: const Duration(milliseconds: 400),
+                      delay: const Duration(milliseconds: 100),
+                      child: CustomTextField(
+                        prefixIcon: Icon(Icons.phone_outlined),
+                        controller: controller.phoneController,
+                        hintText: 'Enter your phone number',
+                        keyboardtype: TextInputType.phone,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your phone number';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      "Gender",
+                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 8),
+                    FadeInDown(
+                      duration: const Duration(milliseconds: 400),
+                      delay: const Duration(milliseconds: 100),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Obx(() => RadioListTile<String>(
+                                  title: const Text("Male"),
+                                  value: "Male",
+                                  groupValue: controller.selectedGender.value,
+                                  onChanged: (value) {
+                                    controller.selectedGender.value = value!;
+                                  },
+                                  contentPadding: EdgeInsets.zero,
+                                )),
+                          ),
+                          Expanded(
+                            child: Obx(() => RadioListTile<String>(
+                                  title: const Text("Female"),
+                                  value: "Female",
+                                  groupValue: controller.selectedGender.value,
+                                  onChanged: (value) {
+                                    controller.selectedGender.value = value!;
+                                  },
+                                  contentPadding: EdgeInsets.zero,
+                                )),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
                     Text(
                       "Email",
                       style: TextStyle(

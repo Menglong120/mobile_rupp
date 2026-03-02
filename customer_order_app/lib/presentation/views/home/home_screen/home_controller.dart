@@ -13,13 +13,8 @@ class HomeController extends GetxController {
 
   var products = <ProductModel>[].obs;
   var filteredProducts = <ProductModel>[].obs;
-  var listCategori = [
+  var listCategori = <Map<String, dynamic>>[
     {'id': 0, 'name': 'All'},
-    {'id': 1, 'name': 'T-Shirts'},
-    {'id': 2, 'name': 'Hoodies'},
-    {'id': 3, 'name': 'Jackets'},
-    {'id': 4, 'name': 'Jeans'},
-    {'id': 5, 'name': 'Pants'},
   ].obs;
 
   var selectedCategoryId = 0.obs;
@@ -36,21 +31,23 @@ class HomeController extends GetxController {
     try {
       isLoading(true);
       final result = await ProductService.getAllProduct();
+      
+      // Clear existing and add 'All'
+      listCategori.assignAll([{'id': 0, 'name': 'All'}]);
+      
+      // Extract unique categories from products
+      final Map<int, String> categoryMap = {};
       for (var p in result) {
-        if (p.name.toLowerCase().contains('t-shirt')) {
-          p.category = 'T-Shirts';
-        } else if (p.name.toLowerCase().contains('hoodie')) {
-          p.category = 'Hoodies';
-        } else if (p.name.toLowerCase().contains('jacket')) {
-          p.category = 'Jackets';
-        } else if (p.name.toLowerCase().contains('jean')) {
-          p.category = 'Jeans';
-        } else if (p.name.toLowerCase().contains('pant')) {
-          p.category = 'Pants';
-        } else {
-          p.category = 'Other';
+        if (p.categoryId != 0) {
+          categoryMap[p.categoryId] = p.category;
         }
       }
+
+      // Add unique brand categories to listCategori
+      categoryMap.forEach((id, name) {
+        listCategori.add({'id': id, 'name': name});
+      });
+
       products.assignAll(result);
       filterProducts();
     } catch (e) {

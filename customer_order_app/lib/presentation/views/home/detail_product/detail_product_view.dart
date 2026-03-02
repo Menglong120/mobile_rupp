@@ -115,6 +115,17 @@ class DetailProductView extends GetView<DetailProductController> {
                   ),
                   const SizedBox(height: 32),
                   const Text(
+                    'Select Size',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildSizeList(),
+                  const SizedBox(height: 32),
+                  const Text(
                     'Quantity',
                     style: TextStyle(
                       fontSize: 20,
@@ -134,6 +145,59 @@ class DetailProductView extends GetView<DetailProductController> {
         ],
       ),
       bottomSheet: _buildBottomButton(products),
+    );
+  }
+
+  Widget _buildSizeList() {
+    return SizedBox(
+      height: 50,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: controller.shoeSizes.length,
+        itemBuilder: (context, index) {
+          final size = controller.shoeSizes[index];
+          return Obx(
+            () {
+              final isSelected = controller.selectedSize.value == size;
+              return GestureDetector(
+                onTap: () => controller.setSelectedSize(size),
+                child: Container(
+                  width: 50,
+                  margin: const EdgeInsets.only(right: 12),
+                  decoration: BoxDecoration(
+                    color: isSelected ? ThemesApp.secondaryColor : Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected
+                          ? ThemesApp.secondaryColor
+                          : Colors.grey[300]!,
+                    ),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: ThemesApp.secondaryColor.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            )
+                          ]
+                        : [],
+                  ),
+                  child: Center(
+                    child: Text(
+                      size,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isSelected ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 

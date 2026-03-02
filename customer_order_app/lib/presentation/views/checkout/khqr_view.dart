@@ -9,10 +9,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:screenshot/screenshot.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:gal/gal.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:path_provider/path_provider.dart';
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
+import 'dart:io';
+import 'package:path/path.dart' as p;
 
 class KhqrView extends StatefulWidget {
   const KhqrView({super.key});
@@ -270,24 +273,22 @@ class _KhqrViewState extends State<KhqrView> {
         );
 
         if (imageBytes != null) {
-          final result = await ImageGallerySaver.saveImage(
-            imageBytes,
-            quality: 100,
-            name: "QR_Code_${DateTime.now().millisecondsSinceEpoch}",
-          );
+          final tempDir = await getTemporaryDirectory();
+          final fileName = "QR_Code_${DateTime.now().millisecondsSinceEpoch}.png";
+          final filePath = p.join(tempDir.path, fileName);
+          final file = File(filePath);
+          await file.writeAsBytes(imageBytes);
 
-          if (result['isSuccess'] == true) {
-            Get.snackbar(
-              'Success',
-              'QR Code saved to gallery',
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.green,
-              colorText: Colors.white,
-              margin: const EdgeInsets.all(15),
-            );
-          } else {
-            throw Exception('Failed to save image');
-          }
+          await Gal.putImage(filePath);
+
+          Get.snackbar(
+            'Success',
+            'QR Code saved to gallery',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+            margin: const EdgeInsets.all(15),
+          );
         }
       } else {
         Get.snackbar(
