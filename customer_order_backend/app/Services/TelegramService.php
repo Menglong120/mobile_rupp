@@ -14,7 +14,7 @@ class TelegramService
     public function __construct()
     {
         $this->token = '8598295374:AAF9PIMmKornwqstfXsUh_JIhgpB_gtlbc8';
-        $this->chatId = '1092601140';
+        $this->chatId = '-1003377975193';
         $this->client = new Client();
     }
 
