@@ -18,6 +18,7 @@ import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'dart:io';
 import 'package:path/path.dart' as p;
+import 'package:qr_flutter/qr_flutter.dart';
 
 class KhqrView extends StatefulWidget {
   const KhqrView({super.key});
@@ -60,10 +61,10 @@ class _KhqrViewState extends State<KhqrView> {
     // Cancel any existing timer before starting a new one
     _pollingTimer?.cancel();
 
-    // DEMO MODE: Auto-succeed after 5 seconds
+    // DEMO MODE: Auto-succeed after 20 seconds
     // This creates a REAL order in the system (like cash), just without scanning
-    debugPrint('KHQR_DEMO: Starting 5-second auto-success timer...');
-    _pollingTimer = Timer(const Duration(seconds: 5), () {
+    debugPrint('KHQR_DEMO: Starting 20-second auto-success timer...');
+    _pollingTimer = Timer(const Duration(seconds: 20), () {
       _autoSucceedPayment();
     });
   }
@@ -276,7 +277,7 @@ class _KhqrViewState extends State<KhqrView> {
                     ),
                     SizedBox(height: 8),
                     Text(
-                      'Order will be confirmed in 5 seconds',
+                      'Order will be confirmed in 20 seconds',
                       style: TextStyle(color: Colors.white70, fontSize: 14),
                     ),
                     SizedBox(height: 4),
@@ -394,24 +395,44 @@ class _KhqrViewState extends State<KhqrView> {
   }
 
   Widget _buildQrImage() {
-    // Attempt to decode as SVG if it's base64
-    if (qrImage != null && qrImage!.contains('base64,')) {
+    final rawQrImage = qrImage?.trim() ?? '';
+
+    if (rawQrImage.isNotEmpty) {
       try {
-        final base64String = qrImage!.split(',').last.trim();
-        final decodedBytes = base64Decode(base64String);
-        
-        // Peek at data: SVGs usually start with '<' or '<?xml'
-        final String header = utf8.decode(decodedBytes.take(10).toList(), allowMalformed: true);
-        
-        if (header.contains('<')) {
-          return SvgPicture.memory(
-            decodedBytes,
+        // Backend may return raw SVG markup directly.
+        if (rawQrImage.startsWith('<svg') || rawQrImage.startsWith('<?xml')) {
+          return SvgPicture.string(
+            rawQrImage,
             width: 250,
             height: 250,
             fit: BoxFit.contain,
           );
-        } else {
-          // Fallback to standard Image.memory if it's PNG/JPG
+        }
+
+        // Data URL format: data:image/...;base64,...
+        if (rawQrImage.startsWith('data:image/')) {
+          if (rawQrImage.startsWith('data:image/svg+xml;utf8,')) {
+            final svg = Uri.decodeComponent(rawQrImage.split(',').last);
+            return SvgPicture.string(
+              svg,
+              width: 250,
+              height: 250,
+              fit: BoxFit.contain,
+            );
+          }
+
+          final base64String = rawQrImage.split(',').last.trim();
+          final decodedBytes = base64Decode(base64String);
+
+          if (rawQrImage.startsWith('data:image/svg+xml')) {
+            return SvgPicture.memory(
+              decodedBytes,
+              width: 250,
+              height: 250,
+              fit: BoxFit.contain,
+            );
+          }
+
           return Image.memory(
             decodedBytes,
             width: 250,
@@ -419,17 +440,63 @@ class _KhqrViewState extends State<KhqrView> {
             fit: BoxFit.contain,
           );
         }
+
+        // Plain base64 payload (SVG or raster image).
+        final decodedBytes = base64Decode(rawQrImage);
+        final header = utf8.decode(
+          decodedBytes.take(16).toList(),
+          allowMalformed: true,
+        );
+
+        if (header.contains('<svg') || header.contains('<?xml') || header.contains('<')) {
+          return SvgPicture.memory(
+            decodedBytes,
+            width: 250,
+            height: 250,
+            fit: BoxFit.contain,
+          );
+        }
+
+        return Image.memory(
+          decodedBytes,
+          width: 250,
+          height: 250,
+          fit: BoxFit.contain,
+        );
       } catch (e) {
-        debugPrint('Error decoding QR Image: $e');
+        debugPrint('KHQR: Failed to decode qrImage payload: $e');
       }
     }
 
-    // Fallback to generating QR via external API if base64 fails
-    return Image.network(
-      'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${Uri.encodeComponent(khqrString)}',
+    // Last resort: generate from KHQR text via external API.
+    if (khqrString.isNotEmpty) {
+      return QrImageView(
+        data: khqrString,
+        version: QrVersions.auto,
+        size: 250,
+        backgroundColor: Colors.white,
+      );
+    }
+
+    return const _QrFallbackMessage();
+  }
+}
+
+class _QrFallbackMessage extends StatelessWidget {
+  const _QrFallbackMessage();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
       width: 250,
       height: 250,
-      fit: BoxFit.contain,
+      child: Center(
+        child: Text(
+          'Unable to load QR code',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.black54, fontSize: 14),
+        ),
+      ),
     );
   }
 }
